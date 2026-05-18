@@ -1,0 +1,33 @@
+groups:
+  - name: mi_app_alertas
+    rules:
+      - alert: HighErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) by (route) /
+          sum(rate(http_requests_total[5m])) by (route)) > 0.1 AND
+          sum(rate(http_requests_total[5m])) by (route) > 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Error rate alto en la ruta {{ $labels.route }}"
+          description: "Más del 10% de requests fallando aaaaa"
+
+      - alert: HighLatencyByRoute
+        expr:
+          histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{route!="/metrics"}[5m]))) > 0.5
+          AND sum(rate(http_requests_total{route!="/metrics"}[5m])) by (route) > 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on {{ $labels.route }} Ayudaaa"
+          description: "p95 latency > 500ms on {{ $labels.route }}"
+
+      - alert: ServiceDown
+        expr: up{job="mi_app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node API is down"
+          description: "Prometheus cannot scrape the Node.js service"

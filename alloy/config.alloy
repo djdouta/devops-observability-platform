@@ -1,0 +1,74 @@
+// ─────────────────────────────────────────────
+// 1. Descubrimiento de contenedores Docker
+// ─────────────────────────────────────────────
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+
+  // Filtra solo contenedores corriendo
+  filter {
+    name   = "status"
+    values = ["running"]
+  }
+}
+
+// ─────────────────────────────────────────────
+// 2. Procesamiento de etiquetas (relabeling)
+//    Convierte metadata Docker en labels de Loki
+// ─────────────────────────────────────────────
+discovery.relabel "docker_labels" {
+  targets = discovery.docker.containers.targets
+
+  // Nombre del contenedor → label "container"
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  // Imagen del contenedor → label "image"
+  rule {
+    source_labels = ["__meta_docker_container_image_name"]
+    target_label  = "image"
+  }
+
+  // Compose project → label "compose_project" (si usás compose)
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    target_label  = "compose_project"
+  }
+
+  // Compose service → label "compose_service"
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "compose_service"
+  }
+  rule {
+  source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+  target_label  = "job"
+  }
+}
+
+// 1. Busca archivos .log dentro del volumen montado
+local.file_match "node_app_logs" {
+  path_targets = [{
+    __path__ = "/var/log/node-app/*.log",
+    job      = "node-app",               // ← acá definís el job directamente
+    entorno  = "produccion",             // ← podés agregar las etiquetas que quieras
+  }]
+}
+
+// 2. Lee y sigue los archivos encontrados
+loki.source.file "node_app_logs" {
+  targets    = local.file_match.node_app_logs.targets
+  forward_to = [loki.write.default.receiver]
+}
+
+// ─────────────────────────────────────────────
+// 4. Envío a Loki
+// ─────────────────────────────────────────────
+// 3. Envía a Loki
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

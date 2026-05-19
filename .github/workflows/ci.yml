@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Validate Docker Compose
+        run: docker compose config
+
+      - name: Build containers
+        run: docker compose build
+
+      - name: Validate Prometheus config
+        run: |
+          docker run --rm \
+            -v $(pwd)/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
+            prom/prometheus \
+            promtool check config /etc/prometheus/prometheus.yml
+
+      - name: Validate Alert Rules
+        run: |
+          docker run --rm \
+            -v $(pwd)/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml \
+            prom/prometheus \
+            promtool check rules /etc/prometheus/alert.rules.yml

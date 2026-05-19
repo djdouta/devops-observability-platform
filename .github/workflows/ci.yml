@@ -34,3 +34,35 @@ jobs:
 
       - name: Build containers
         run: docker compose build
+
+      - name: Install linters
+        run: |
+          sudo apt-get update 
+            sudo apt-get install -y yamllint
+            curl -sSL https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
+            chmod +x /usr/local/bin/hadolint
+            npm install --global eslint prettier
+
+      - name: Lint YAML files
+        run: yamllint .
+
+      - name: Lint Dockerfile
+        run: hadolint Dockerfile
+
+      - name: Lint JS/TS files
+        run: eslint .
+
+      - name: Format check with Prettier
+        run: prettier --check .
+
+      - name: Start containers
+        run: docker compose up -d
+
+      - name: Check /metrics endpoint
+        run: curl -f http://localhost:9090/metrics
+
+      - name: Check Prometheus targets
+        run: curl -f http://localhost:9090/api/v1/targets | grep '"health":"up"'
+
+      - name: Check Grafana login page
+        run: curl -f http://localhost:3000/login

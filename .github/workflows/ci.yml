@@ -1,35 +1,36 @@
-name: CI
+name: CI Pipeline
 
 on:
   push:
     branches:
       - main
 
-  pull_request:
-
 jobs:
   validate-and-build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Validate Docker Compose
-        run: docker compose config
 
-      - name: Build containers
-        run: docker compose build
+      - name: Validate docker compose
+        run: docker compose config
 
       - name: Validate Prometheus config
         run: |
           docker run --rm \
-            -v $(pwd)/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
+            -v $(pwd)/prometheus:/etc/prometheus \
+            --entrypoint promtool \
             prom/prometheus \
-            promtool check config /etc/prometheus/prometheus.yml
+            check config /etc/prometheus/prometheus.yml
 
-      - name: Validate Alert Rules
+      - name: Validate Prometheus rules
         run: |
           docker run --rm \
-            -v $(pwd)/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml \
+            -v $(pwd)/prometheus:/etc/prometheus \
+            --entrypoint promtool \
             prom/prometheus \
-            promtool check rules /etc/prometheus/alert.rules.yml
+            check rules /etc/prometheus/alert.rules.yml
+
+      - name: Build containers
+        run: docker compose build

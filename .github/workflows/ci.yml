@@ -1,10 +1,9 @@
+---
 name: CI Pipeline
-
 on:
   push:
     branches:
       - main
-
 jobs:
   validate-and-build:
     runs-on: ubuntu-latest
@@ -36,12 +35,12 @@ jobs:
         run: docker compose build
 
       - name: Install linters
-        run: |
-          sudo apt-get update 
-            sudo apt-get install -y yamllint
-            curl -sSL https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
-            chmod +x /usr/local/bin/hadolint
-            npm install --global eslint prettier
+        run: >
+          sudo apt-get install -y yamllint &&
+          URL=https://github.com/hadolint/hadolint/releases/latest/download &&
+          curl -sSL "$URL/hadolint-Linux-x86_64" -o /usr/local/bin/hadolint &&
+          chmod +x /usr/local/bin/hadolint &&
+          npm install --global eslint prettier
 
       - name: Lint YAML files
         run: yamllint .

@@ -46,7 +46,9 @@ jobs:
         run: yamllint .
 
       - name: Lint Dockerfile
-        run: hadolint Dockerfile
+        run: |
+          hadolint monitorin-app/alert-receiver/Dockerfile
+          hadolint monitorin-app/node-app/Dockerfile
 
       - name: Lint JS/TS files
         run: eslint .

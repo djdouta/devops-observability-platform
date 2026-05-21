@@ -83,7 +83,8 @@ jobs:
       - name: Check Prometheus targets
         run: |
           for i in {1..5}; do
-            curl -s http://localhost:9090/api/v1/targets | grep '"health":"up"' && exit 0
+            TARGETS=$(curl -s http://localhost:9090/api/v1/targets)
+            echo "$TARGETS" | grep '"health":"up"' && exit 0
             echo "Targets not ready yet, retrying..."
             sleep 5
           done

@@ -65,6 +65,17 @@ jobs:
       - name: Format check with Prettier
         run: prettier --check .
 
+      - name: Create external Prometheus volume
+        run: |
+          docker volume create observability-stack_node-logs
+          docker volume create observability-stack_grafana-data
+          docker volume create observability-stack_loki-data
+          docker volume create observability-stack_prometheus-data
+          docker volume create observability-stack_alertmanager-data
+
+      - name: build and run containers
+        run: docker compose up build
+
       - name: Start containers
         run: docker compose up -d
 

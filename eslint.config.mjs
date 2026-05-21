@@ -16,5 +16,10 @@ export default defineConfig([
     files: ['monitoring-app/node-app/**/*.{js,jsx,mjs,cjs}'],
     extends: [js.configs.recommended, pluginReact.configs.flat.recommended],
     languageOptions: { globals: globals.browser },
+    settings: {
+      react: {
+        version: '18.0',
+      },
+    },
   },
 ])

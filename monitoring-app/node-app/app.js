@@ -16,9 +16,6 @@ function log(level, event, extra = {}) {
     ...extra,
   }
 
-  // console.log(JSON.stringify(logEntry));
-  const line = JSON.stringify(logEntry) + '\n'
-
   console.log(JSON.stringify(logEntry))
 }
 // Counter: total de requests

@@ -81,7 +81,14 @@ jobs:
         run: curl -f http://localhost:9090/metrics
 
       - name: Check Prometheus targets
-        run: curl -f http://localhost:9090/api/v1/targets | grep '"health":"up"'
+        run: |
+          for i in {1..5}; do
+            curl -s http://localhost:9090/api/v1/targets | grep '"health":"up"' && exit 0
+            echo "Targets not ready yet, retrying..."
+            sleep 5
+          done
+          echo "Prometheus targets did not come up healthy"
+          exit 1
 
       - name: Check Grafana login page
         run: curl -f http://localhost:3000/login

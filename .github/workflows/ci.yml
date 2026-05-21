@@ -73,11 +73,9 @@ jobs:
           docker volume create observability-stack_prometheus-data
           docker volume create observability-stack_alertmanager-data
 
-      - name: build and run containers
-        run: docker compose up build
-
-      - name: Start containers
-        run: docker compose up -d
+      - name: Build and run containers
+        run: |
+          docker compose up -d --build
 
       - name: Check /metrics endpoint
         run: curl -f http://localhost:9090/metrics

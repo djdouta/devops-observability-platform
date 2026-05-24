@@ -12,7 +12,7 @@ services:
       - observability
   node-app:
     build:
-      context: ./monitoring-app/node-app
+      context: ./k8s/monitoring-app/node-app
       dockerfile: Dockerfile
     init: true
     ports:

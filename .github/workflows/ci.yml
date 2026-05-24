@@ -8,6 +8,9 @@ jobs:
   validate-and-build:
     runs-on: ubuntu-latest
 
+    env:
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

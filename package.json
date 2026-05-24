@@ -2,20 +2,14 @@
   "name": "devops-observability-platform",
   "version": "1.0.0",
   "description": "DevOps Observability Platform",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
+  "private": true,
+  "license": "MIT",
+  "author": "Jesus Rojas (djdouta)",
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@typescript-eslint/eslint-plugin": "^8.59.4",
     "@typescript-eslint/parser": "^8.59.4",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.6.0"
-  },
-  "dependencies": {
-    "22": "^0.0.0"
   }
 }

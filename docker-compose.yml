@@ -10,9 +10,10 @@ services:
         condition: service_healthy
     networks:
       - observability
+
   node-app:
     build:
-      context: ./k8s/monitoring-app/node-app
+      context: ./apps/node-app
       dockerfile: Dockerfile
     init: true
     ports:
@@ -23,14 +24,14 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    volumes:
-      - node-logs:/var/log
+    # ✅ Sin volumen node-logs: los logs van a stdout y Alloy los captura
     networks:
       - observability
     restart: always
+
   alert-receiver:
     build:
-      context: ./monitoring-app/alert-receiver
+      context: ./apps/alert-receiver
       dockerfile: Dockerfile
     ports:
       - '5001:5001'
@@ -39,6 +40,7 @@ services:
     networks:
       - observability
     restart: unless-stopped
+
   prometheus:
     image: prom/prometheus
     volumes:
@@ -58,6 +60,7 @@ services:
     networks:
       - observability
     restart: unless-stopped
+
   alertmanager:
     image: prom/alertmanager
     volumes:
@@ -68,8 +71,9 @@ services:
     networks:
       - observability
     restart: unless-stopped
+
   loki:
-    image: grafana/loki
+    image: grafana/loki:latest
     ports:
       - '3100:3100'
     volumes:
@@ -80,27 +84,33 @@ services:
       test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3100/ready']
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 20s
     networks:
       - observability
     restart: unless-stopped
+
   alloy:
     image: grafana/alloy:latest
     restart: unless-stopped
     volumes:
-      - ./alloy/config.alloy:/etc/alloy/config.alloy
-      - /var/run/docker.sock:/var/run/docker.sock
-      - node-logs:/var/log/node-app:ro
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     command:
       - run
       - /etc/alloy/config.alloy
       - --server.http.listen-addr=0.0.0.0:12345
     ports:
       - '12345:12345'
+    depends_on:
+      loki:
+        condition: service_healthy
     networks:
       - observability
+
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     ports:
       - '3001:3000'
     volumes:
@@ -115,10 +125,8 @@ services:
     networks:
       - observability
     restart: unless-stopped
+
 volumes:
-  node-logs:
-    external: true
-    name: observability-stack_node-logs
   grafana-data:
     external: true
     name: observability-stack_grafana-data
@@ -131,6 +139,7 @@ volumes:
   alertmanager-data:
     external: true
     name: observability-stack_alertmanager-data
+
 networks:
   observability:
     driver: bridge

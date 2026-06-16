@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert-receiver-service
+  labels:
+    app: alert-receiver
+spec:
+  selector:
+    app: alert-receiver
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+  type: ClusterIP

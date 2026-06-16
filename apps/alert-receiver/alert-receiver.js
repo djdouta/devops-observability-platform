@@ -107,6 +107,10 @@ app.post('/log', (req, res) => {
   res.sendStatus(200)
 })
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' })
+})
+
 app.listen(5001, () => {
   console.log('Alert receiver en puerto 5001')
 })

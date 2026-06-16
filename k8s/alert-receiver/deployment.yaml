@@ -2,35 +2,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: node-app
+  name: alert-receiver
+  labels:
+    app: alert-receiver
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app: node-app
+      app: alert-receiver
   template:
     metadata:
       labels:
-        app: node-app
+        app: alert-receiver
     spec:
       containers:
-        - name: node-app
-          image: node-app:1.0
-          imagePullPolicy: Never
+        - name: alert-receiver
+          image: alert-receiver:1.1
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 3000
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 15
-            periodSeconds: 20
+            - containerPort: 5001
           readinessProbe:
             httpGet:
               path: /health
-              port: 3000
+              port: 5001
             initialDelaySeconds: 5
             periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 15
+            periodSeconds: 20
           resources:
             requests:
               cpu: '100m'

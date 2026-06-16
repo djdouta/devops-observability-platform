@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-script-config
+data:
+  test.js: |
+    import http from 'k6/http'
+    import { sleep } from 'k6'
+
+    export const options = {
+      stages: [
+        { duration: '1m', target: 10 },   // ramp-up a 10 usuarios
+        { duration: '3m', target: 50 },   // mantener 50 usuarios
+        { duration: '2m', target: 100 },  // subir a 100 usuarios
+        { duration: '3m', target: 50 },   // bajar a 50
+        { duration: '1m', target: 0 },    // ramp-down a 0
+      ],
+    }
+
+    export default function () {
+      const routes = ['/orders', '/login', '/logout', '/shop', '/checkout']
+      const route = routes[Math.floor(Math.random() * routes.length)]
+      http.get(`http://node-app:3000${route}`)
+      sleep(Math.random() * 2) // pausa aleatoria
+    }

@@ -50,8 +50,8 @@ jobs:
 
       - name: Lint Dockerfile
         run: |
-          hadolint ./monitoring-app/alert-receiver/Dockerfile
-          hadolint ./monitoring-app/node-app/Dockerfile
+          hadolint ./apps/alert-receiver/Dockerfile
+          hadolint ./apps/node-app/Dockerfile
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

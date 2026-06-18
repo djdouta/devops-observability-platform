@@ -1,8 +1,10 @@
-# Validar docker compose
+# ==============================================================================
+# Validación
+# ==============================================================================
+
 compose-validate:
 	docker compose config
 
-# Validar Prometheus config
 prometheus-validate:
 	docker run --rm \
 		-v $(PWD)/prometheus:/etc/prometheus \
@@ -10,7 +12,6 @@ prometheus-validate:
 		prom/prometheus \
 		check config /etc/prometheus/prometheus.yml
 
-# Validar Prometheus rules
 prometheus-rules:
 	docker run --rm \
 		-v $(PWD)/prometheus:/etc/prometheus \
@@ -18,38 +19,52 @@ prometheus-rules:
 		prom/prometheus \
 		check rules /etc/prometheus/alert.rules.yml
 
-# Lint YAML
+# ==============================================================================
+# Linting
+# ==============================================================================
+
 lint-yaml:
 	yamllint .
 
-# Lint Dockerfiles
 lint-docker:
-	hadolint ./monitoring-app/alert-receiver/Dockerfile
-	hadolint ./monitoring-app/node-app/Dockerfile
+	hadolint ./apps/alert-receiver/Dockerfile
+	hadolint ./apps/node-app/Dockerfile
 
-# Lint JS/TS
 lint-js:
 	npx eslint .
 
-# Format check
 format-check:
-	prettier --check .
+	npx prettier --check .
 
-# Build containers
+# ==============================================================================
+# Docker
+# ==============================================================================
+
+volumes-create:
+	docker volume create observability-stack_node-logs
+	docker volume create observability-stack_grafana-data
+	docker volume create observability-stack_loki-data
+	docker volume create observability-stack_prometheus-data
+	docker volume create observability-stack_alertmanager-data
+
 docker-build:
 	docker compose build
 
-# Run containers
 docker-up:
 	docker compose up -d --build
 
-# Check Prometheus /metrics
+docker-down:
+	docker compose down
+
+# ==============================================================================
+# Health checks
+# ==============================================================================
+
 check-prometheus:
 	curl -f http://localhost:9090/metrics
 
-# Check Prometheus targets
 check-targets:
-	for i in {1..5}; do \
+	@for i in 1 2 3 4 5; do \
 		TARGETS=$$(curl -s http://localhost:9090/api/v1/targets); \
 		echo "$$TARGETS" | grep '"health":"up"' && exit 0; \
 		echo "Targets not ready yet, retrying..."; \
@@ -58,9 +73,19 @@ check-targets:
 	echo "Prometheus targets did not come up healthy"; \
 	exit 1
 
-# Check Grafana login
 check-grafana:
 	curl -f http://localhost:3000/login
 
-# Target maestro: valida todo
-check: compose-validate prometheus-validate prometheus-rules lint-yaml lint-docker lint-js format-check docker-build docker-up check-prometheus check-targets check-grafana
+# ==============================================================================
+# Targets maestros
+# ==============================================================================
+
+lint: lint-yaml lint-docker lint-js format-check
+
+check: compose-validate prometheus-validate prometheus-rules lint volumes-create docker-up check-prometheus check-targets check-grafana
+
+.PHONY: compose-validate prometheus-validate prometheus-rules \
+        lint-yaml lint-docker lint-js format-check \
+        volumes-create docker-build docker-up docker-down \
+        check-prometheus check-targets check-grafana \
+        lint check

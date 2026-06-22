@@ -18,3 +18,7 @@ grafana-data/
 loki-data/
 
 .DS_Store
+
+
+loki/*
+# loki/wal/*
